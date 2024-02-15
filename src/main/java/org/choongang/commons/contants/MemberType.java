@@ -1,4 +1,4 @@
-package org.choongang.commons.constants;
+package org.choongang.commons.contants;
 
 public enum MemberType {
     USER, // 일반회원

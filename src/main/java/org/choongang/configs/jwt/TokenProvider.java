@@ -3,7 +3,9 @@ package org.choongang.configs.jwt;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import lombok.extern.slf4j.Slf4j;
+import io.jsonwebtoken.security.SecurityException;
+import org.choongang.commons.Utils;
+import org.choongang.commons.exceptions.BadRequestException;
 import org.choongang.models.member.MemberInfo;
 import org.choongang.models.member.MemberInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,50 +20,38 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
-@Slf4j
 public class TokenProvider {
-    private static final String AUTHORITIES_KEY = "auth";
+
     private final String secret;
     private final long tokenValidityInSeconds;
 
+    @Autowired
+    private MemberInfoService infoService;
+
     private Key key;
 
-    @Autowired
-    private MemberInfoService memberInfoService;
-
-    public TokenProvider(String secret, long tokenValidityInSeconds) {
+    public TokenProvider(String secret, Long tokenValidityInSeconds) {
         this.secret = secret;
         this.tokenValidityInSeconds = tokenValidityInSeconds;
 
-        // 시크릿 값을 복호화(decode) 하여 키 변수에 할당
-        byte[] keyBytes = Decoders.BASE64.decode(secret);
-        this.key = Keys.hmacShaKeyFor(keyBytes);
+        byte[] bytes = Decoders.BASE64.decode(secret);
+        key = Keys.hmacShaKeyFor(bytes);
     }
 
     public String createToken(Authentication authentication) {
-        String authorities = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
+        String authories = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
 
-        long now = (new Date()).getTime();
-        Date validity = new Date(now + this.tokenValidityInSeconds * 1000);
+        Date expires = new Date((new Date()).getTime() + tokenValidityInSeconds * 1000);
+
         return Jwts.builder()
                 .setSubject(authentication.getName())
-                .claim(AUTHORITIES_KEY, authorities)
+                .claim("auth", authories)
                 .signWith(key, SignatureAlgorithm.HS512) // HMAC + SHA512
-                .setExpiration(validity)
+                .setExpiration(expires)
                 .compact();
     }
 
-    /**
-     * 토큰을 받아 클레임을 생성
-     * 클레임에서 권한 정보를 가져와서 시큐리티 UserDetails 객체를 만들고
-     * Authentication 객체 반환
-     *
-     * @param token
-     * @return
-     */
     public Authentication getAuthentication(String token) {
         Claims claims = Jwts.parser()
                 .setSigningKey(key)
@@ -69,38 +59,33 @@ public class TokenProvider {
                 .parseClaimsJws(token)
                 .getPayload();
 
-        List<? extends GrantedAuthority> authorities =
-                Arrays.stream(claims.get(AUTHORITIES_KEY).toString().split(","))
-                        .map(SimpleGrantedAuthority::new)
-                        .collect(Collectors.toList());
+        String email = claims.getSubject();
+        MemberInfo userDetails = (MemberInfo)infoService.loadUserByUsername(email);
 
-        MemberInfo memberInfo = (MemberInfo)memberInfoService.loadUserByUsername(claims.getSubject());
-        memberInfo.setAuthorities(authorities);
+        String auth = claims.get("auth").toString();
+        List<? extends GrantedAuthority> authorities = Arrays.stream(auth.split(","))
+                .map(SimpleGrantedAuthority::new).toList();
+        userDetails.setAuthorities(authorities);
 
-        return new UsernamePasswordAuthenticationToken(memberInfo, token, authorities);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, token, authorities);
+
+        return authentication;
     }
 
-    /**
-     * 토큰 유효성 체크
-     *
-     * @param token
-     * @return
-     */
-    public boolean validateToken(String token) {
+    public void validateToken(String token) {
         try {
-            Claims claims = Jwts.parser().setSigningKey(key).build().parseClaimsJws(token).getBody();
-            return true;
-        } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
-            log.info("잘못된 JWT 서명입니다.");
-        } catch (ExpiredJwtException e) {
-            log.info("만료된 JWT 토큰입니다.");
-        } catch (UnsupportedJwtException e) {
-            log.info("지원되지 않는 JWT 토큰 입니다.");
-        } catch (IllegalArgumentException e) {
-            log.info("JWT 토큰이 잘못되었습니다.");
-            e.printStackTrace();
-        }
+            Claims claims = Jwts.parser()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getPayload();
 
-        return false;
+        } catch (ExpiredJwtException e) {
+            throw new BadRequestException(Utils.getMessage("EXPIRED.JWT_TOKEN", "validation"));
+        } catch (UnsupportedJwtException e) {
+            throw new BadRequestException(Utils.getMessage("UNSUPPORTED.JWT_TOKEN", "validation"));
+        } catch (SecurityException | MalformedJwtException | IllegalArgumentException e) {
+            throw new BadRequestException(Utils.getMessage("INVALID_FORMAT.JWT_TOKEN", "validation"));
+        }
     }
 }

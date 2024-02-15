@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @EnableConfigurationProperties(JwtProperties.class)
 public class JwtConfig {
+
     @Bean
     public TokenProvider tokenProvider(JwtProperties jwtProperties) {
         return new TokenProvider(jwtProperties.getSecret(), jwtProperties.getAccessTokenValidityInSeconds());

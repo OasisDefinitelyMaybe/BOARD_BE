@@ -1,4 +1,4 @@
-package org.choongang.api.commons;
+package org.choongang.commons.rests;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -7,14 +7,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 
 @Data
-@NoArgsConstructor
-@RequiredArgsConstructor
-public class JSONData<T> {
+@NoArgsConstructor @RequiredArgsConstructor
+public class JSONData {
     private boolean success = true;
-
-    @NonNull
-    private T data;
-
-    private String message;
     private HttpStatus status = HttpStatus.OK;
+    @NonNull
+    private Object data;
+    private Object message;
 }

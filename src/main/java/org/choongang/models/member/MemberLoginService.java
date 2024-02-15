@@ -1,9 +1,8 @@
 package org.choongang.models.member;
 
 import lombok.RequiredArgsConstructor;
-import org.choongang.api.members.dto.ResponseLogin;
+import org.choongang.api.controllers.members.RequestLogin;
 import org.choongang.configs.jwt.TokenProvider;
-import org.choongang.repositories.MemberRepository;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
@@ -14,18 +13,14 @@ import org.springframework.stereotype.Service;
 public class MemberLoginService {
     private final TokenProvider tokenProvider;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
-    private final MemberRepository repository;
 
-    public ResponseLogin authenticate(String email, String password) {
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(email, password);
+    public String login(RequestLogin form) {
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(form.email(), form.password());
 
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
-        // 인증 정보를 가지고 JWT AccessToken 발급
-        String accessToken = tokenProvider.createToken(authentication);
+        String accessToken = tokenProvider.createToken(authentication); // JWT 토큰 발급
 
-        return ResponseLogin.builder()
-                .accessToken(accessToken)
-                .build();
+        return accessToken;
     }
 }

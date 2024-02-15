@@ -1,7 +1,7 @@
 package org.choongang.models.member;
 
 import lombok.RequiredArgsConstructor;
-import org.choongang.commons.constants.MemberType;
+import org.choongang.commons.contants.MemberType;
 import org.choongang.entities.Member;
 import org.choongang.repositories.MemberRepository;
 import org.springframework.security.core.GrantedAuthority;
@@ -18,20 +18,22 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 public class MemberInfoService implements UserDetailsService {
+
     private final MemberRepository repository;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+
         Member member = repository.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException(username));
 
         MemberType type = Objects.requireNonNullElse(member.getType(), MemberType.USER);
-        List<? extends GrantedAuthority> authorities = Arrays.asList(new SimpleGrantedAuthority(type.name()));
+        List<GrantedAuthority> authorities = Arrays.asList(new SimpleGrantedAuthority(type.name()));
 
         return MemberInfo.builder()
                 .email(member.getEmail())
-                .name(member.getName())
-                .member(member)
+                .password(member.getPassword())
                 .authorities(authorities)
+                .member(member)
                 .build();
     }
 }

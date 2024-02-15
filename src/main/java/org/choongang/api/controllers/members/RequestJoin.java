@@ -1,14 +1,16 @@
-package org.choongang.api.members.dto;
+package org.choongang.api.controllers.members;
 
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.Builder;
 
+@Builder
 public record RequestJoin(
         @NotBlank @Email
         String email,
-
-        @NotBlank
+        @NotBlank @Size(min=8)
         String password,
 
         @NotBlank
@@ -16,10 +18,8 @@ public record RequestJoin(
 
         @NotBlank
         String name,
-
-        @NotBlank
         String mobile,
 
         @AssertTrue
-        boolean agree
+        Boolean agree
 ) {}

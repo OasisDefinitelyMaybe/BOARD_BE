@@ -46,6 +46,8 @@ dependencies {
 	testImplementation 'com.h2database:h2'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
+	implementation 'com.oracle.database.nls:orai18n:23.3.0.23.09'
+
 }
 
 tasks.named('bootBuildImage') {

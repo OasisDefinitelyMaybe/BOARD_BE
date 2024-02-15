@@ -1,12 +1,12 @@
-package org.choongang.api.members.dto;
+package org.choongang.api.controllers.members;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import lombok.Builder;
 
+@Builder
 public record RequestLogin(
-        @NotBlank @Email
+        @NotBlank
         String email,
-
         @NotBlank
         String password
 ) {}

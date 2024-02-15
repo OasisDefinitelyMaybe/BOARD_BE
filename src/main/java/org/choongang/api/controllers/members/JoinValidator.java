@@ -1,7 +1,6 @@
-package org.choongang.api.members.validator;
+package org.choongang.api.controllers.members;
 
 import lombok.RequiredArgsConstructor;
-import org.choongang.api.members.dto.RequestJoin;
 import org.choongang.commons.validators.MobileValidator;
 import org.choongang.commons.validators.PasswordValidator;
 import org.choongang.repositories.MemberRepository;

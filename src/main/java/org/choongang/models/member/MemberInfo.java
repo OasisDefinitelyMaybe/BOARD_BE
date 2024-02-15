@@ -13,9 +13,8 @@ import java.util.Collection;
 public class MemberInfo implements UserDetails {
 
     private String email;
-    private String name;
+    private String password;
     private Member member;
-
     private Collection<? extends GrantedAuthority> authorities;
 
     @Override
@@ -25,10 +24,7 @@ public class MemberInfo implements UserDetails {
 
     @Override
     public String getPassword() {
-        if (member != null)
-            return member.getPassword();
-
-        return null;
+        return password;
     }
 
     @Override
