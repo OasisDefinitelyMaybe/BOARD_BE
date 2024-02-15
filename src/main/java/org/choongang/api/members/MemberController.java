@@ -4,7 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.choongang.api.commons.JSONData;
-import org.choongang.api.commons.Utils;
+import org.choongang.commons.Utils;
 import org.choongang.api.members.dto.RequestJoin;
 import org.choongang.api.members.dto.RequestLogin;
 import org.choongang.api.members.dto.ResponseLogin;
