@@ -33,5 +33,5 @@ logging:
 # JSON WebToken 설정
 jwt:
   header: Authorization
-  secret: YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd6eXoxMjMxMjMxMjMxMjMxMjMxMzEyMzEyMzEzMTIzMTIzMTIzMTMxMjMxMzEzMTMxMjM # base64 인코딩
+  secret: ${jwt.secret}
   accessTokenValidityInSeconds: 3600 # 60 min
